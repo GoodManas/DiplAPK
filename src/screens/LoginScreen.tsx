@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -9,19 +9,29 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { setAuthToken } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useServer } from '../context/ServerContext';
+import { clearStoredToken } from '../storage';
 
 export function LoginScreen() {
   const { signIn, loading } = useAuth();
+  const { clearServerUrl } = useServer();
   const [employeeCode, setEmployeeCode] = useState('405IS');
   const [password, setPassword] = useState('demo123');
+
+  useEffect(() => {
+    void clearStoredToken();
+    setAuthToken(null);
+  }, []);
 
   const onSubmit = async () => {
     const ok = await signIn(employeeCode, password);
     if (!ok) {
       Alert.alert(
         'Ошибка',
-        'Неверный логин/пароль или сервер недоступен. Запустите server (порт 3001).',
+        'Неверный логин/пароль, сервер недоступен или устарел токен. ' +
+          'Нажмите «Изменить адрес сервера», сохраните URL снова, затем 405IS / demo123.',
       );
     }
   };
@@ -56,9 +66,12 @@ export function LoginScreen() {
         </Pressable>
       </View>
 
+      <Pressable style={styles.linkButton} onPress={() => clearServerUrl()}>
+        <Text style={styles.linkText}>Изменить адрес сервера</Text>
+      </Pressable>
+
       <Text style={styles.hint}>
-        Демо: 405IS / demo123. Сервер: npm run dev в папке server. На телефоне укажите IP ПК в
-        .env (EXPO_PUBLIC_API_URL).
+        Демо: 405IS / demo123. Адрес API задаётся на экране настройки и хранится на устройстве.
       </Text>
     </KeyboardAvoidingView>
   );
@@ -114,8 +127,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  linkButton: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  linkText: {
+    color: '#2563eb',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   hint: {
-    marginTop: 16,
+    marginTop: 12,
     fontSize: 12,
     color: '#64748b',
     textAlign: 'center',

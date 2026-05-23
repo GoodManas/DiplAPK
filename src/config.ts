@@ -1,2 +1,3 @@
-// Для телефона: замени на IP компьютера в локальной сети, например http://192.168.1.105:3001
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
+/** Подсказка при первой настройке (сборка); рабочий адрес хранится в AsyncStorage. */
+export const DEFAULT_SERVER_URL_HINT =
+  process.env.EXPO_PUBLIC_API_URL ?? 'https://ваш-туннель.lhr.life';

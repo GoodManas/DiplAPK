@@ -42,3 +42,10 @@ yarn-error.*
 
 # server database
 server/data/
+
+# tunnel notify secrets
+scripts/tunnel-email.config.ps1
+scripts/tunnel-email.secrets.ps1
+tunnel-last-url.txt
+tunnel-current-url.txt
+tools/cloudflared.exe

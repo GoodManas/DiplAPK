@@ -48,5 +48,5 @@ io.on('connection', (socket) => {
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`API: http://localhost:${PORT}/api/health`);
   console.log(`WebSocket: ws://localhost:${PORT}`);
-  console.log('Для телефона укажите IP ПК в EXPO_PUBLIC_API_URL');
+  console.log('На телефоне укажите URL туннеля или IP в приложении (экран «Адрес сервера»)');
 });

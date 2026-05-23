@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useServer } from '../context/ServerContext';
 import { RootStackParamList } from '../navigation/types';
 import { getStatusLabel } from '../utils/statusLabels';
 
@@ -17,6 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export function ProfileScreen({ navigation }: Props) {
   const { executor, permissions, signOut, changePassword } = useAuth();
+  const { serverUrl } = useServer();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
@@ -47,6 +49,20 @@ export function ProfileScreen({ navigation }: Props) {
             <Text style={styles.value}>{executor.phone}</Text>
           </>
         )}
+      </View>
+
+      <Text style={styles.section}>Сервер API</Text>
+      <View style={styles.card}>
+        <Text style={styles.label}>Текущий адрес</Text>
+        <Text style={styles.value} selectable>
+          {serverUrl}
+        </Text>
+        <Pressable
+          style={[styles.button, styles.buttonSpaced]}
+          onPress={() => navigation.navigate('ServerSettings')}
+        >
+          <Text style={styles.buttonText}>Изменить адрес сервера</Text>
+        </Pressable>
       </View>
 
       <Text style={styles.section}>Смена пароля</Text>
@@ -116,6 +132,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
+  },
+  buttonSpaced: {
+    marginTop: 12,
   },
   buttonText: { color: '#fff', fontWeight: '600' },
   perm: { color: '#334155', marginBottom: 6 },

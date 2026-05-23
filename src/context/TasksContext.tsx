@@ -7,11 +7,10 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { io, Socket } from 'socket.io-client';
 import { fetchMyTasks, updateTaskStatus } from '../api/requests';
-import { API_URL } from '../config';
 import { ServiceTask, TaskStatus } from '../types';
 import { useAuth } from './AuthContext';
+import { useServer } from './ServerContext';
 
 type TasksContextValue = {
   tasks: ServiceTask[];
@@ -36,6 +35,7 @@ const TasksContext = createContext<TasksContextValue | null>(null);
 
 export function TasksProvider({ children }: { children: ReactNode }) {
   const { token } = useAuth();
+  const { serverUrl } = useServer();
   const [tasks, setTasks] = useState<ServiceTask[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,15 +71,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   }, [token, refresh, search]);
 
   useEffect(() => {
-    if (!token) return;
-    const socket: Socket = io(API_URL, { transports: ['websocket', 'polling'] });
-    socket.on('sync', () => refresh());
+    if (!token || !serverUrl) return;
     const interval = setInterval(refresh, 20000);
-    return () => {
-      socket.disconnect();
-      clearInterval(interval);
-    };
-  }, [token, refresh]);
+    return () => clearInterval(interval);
+  }, [token, serverUrl, refresh]);
 
   const value = useMemo<TasksContextValue>(
     () => ({

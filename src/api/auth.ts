@@ -1,4 +1,4 @@
-import { api, setAuthToken } from './client';
+import { api, getApiBaseUrl, setAuthToken } from './client';
 import { Executor, RolePermissions } from '../types';
 import { clearStoredToken, saveStoredToken } from '../storage';
 
@@ -17,7 +17,8 @@ export async function loginApi(employeeCode: string, password: string) {
   }
 
   setAuthToken(res.token);
-  await saveStoredToken(res.token);
+  const base = getApiBaseUrl();
+  if (base) await saveStoredToken(res.token, base);
   return { token: res.token, executor: res.user, permissions: res.permissions };
 }
 

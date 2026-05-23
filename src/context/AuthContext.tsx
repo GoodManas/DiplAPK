@@ -10,6 +10,7 @@ import { changePasswordApi, fetchMeApi, loginApi, logoutApi } from '../api/auth'
 import { setAuthToken } from '../api/client';
 import { clearStoredToken, loadStoredToken, saveStoredToken } from '../storage';
 import { Executor, RolePermissions } from '../types';
+import { useServer } from './ServerContext';
 
 type AuthContextValue = {
   executor: Executor | null;
@@ -25,6 +26,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { serverUrl, bootstrapping: serverBootstrapping } = useServer();
   const [executor, setExecutor] = useState<Executor | null>(null);
   const [permissions, setPermissions] = useState<RolePermissions | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -32,10 +34,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [bootstrapping, setBootstrapping] = useState(true);
 
   useEffect(() => {
+    if (serverBootstrapping) return;
+
+    if (!serverUrl) {
+      setExecutor(null);
+      setPermissions(null);
+      setToken(null);
+      setAuthToken(null);
+      setBootstrapping(false);
+      return;
+    }
+
     (async () => {
+      setBootstrapping(true);
       try {
-        const stored = await loadStoredToken();
-        if (!stored) return;
+        const stored = await loadStoredToken(serverUrl);
+        if (!stored) {
+          setExecutor(null);
+          setPermissions(null);
+          setToken(null);
+          setAuthToken(null);
+          return;
+        }
         setAuthToken(stored);
         const me = await fetchMeApi();
         if (me.user.role !== 'executor') {
@@ -53,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setBootstrapping(false);
       }
     })();
-  }, []);
+  }, [serverUrl, serverBootstrapping]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -84,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       changePassword: async (current, next) => {
         await changePasswordApi(current, next);
-        if (token) await saveStoredToken(token);
+        if (token && serverUrl) await saveStoredToken(token, serverUrl);
       },
     }),
     [executor, permissions, token, loading, bootstrapping],
